@@ -443,6 +443,12 @@ function lspfinder.preview_definition(timeout_ms)
     print("No location found: " .. method)
     return nil
   end
+  local non_empty_res
+  for k, v in pairs(result) do
+      if v ~= nil then
+        non_empty_res = v
+      end
+  end
   result = {vim.tbl_deep_extend("force", {}, unpack(result))}
 
   if vim.tbl_islist(result) and not vim.tbl_isempty(result[1]) then
@@ -501,7 +507,7 @@ function lspfinder.preview_definition(timeout_ms)
     }
 
     local bf,wi = window.create_win_with_border(content_opts,opts)
-    vim.lsp.util.close_preview_autocmd({"CursorMoved", "CursorMovedI", "BufHidden", "BufLeave"},
+    libs.close_preview_autocmd({"CursorMoved", "CursorMovedI", "BufHidden", "BufLeave"},
                                         wi)
     vim.api.nvim_buf_add_highlight(bf,-1,"DefinitionPreviewTitle",0,0,-1)
 

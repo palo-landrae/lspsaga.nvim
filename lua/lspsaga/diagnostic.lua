@@ -8,6 +8,26 @@ local if_nil = vim.F.if_nil
 local hover = require('lspsaga.hover')
 local M = {}
 
+local diagnostic_severities = {
+  [vim.diagnostic.severity.ERROR] = { ctermfg = 1, guifg = "Red" };
+  [vim.diagnostic.severity.WARN] = { ctermfg = 3, guifg = "Orange" };
+  [vim.diagnostic.severity.INFO] = { ctermfg = 4, guifg = "LightBlue" };
+  [vim.diagnostic.severity.HINT] = { ctermfg = 7, guifg = "LightGrey" };
+}
+
+local function make_highlight_map(base_name)
+  local result = {}
+  for k in pairs(diagnostic_severities) do
+    local name = vim.diagnostic.severity[k]
+    name = name:sub(1, 1) .. name:sub(2):lower()
+    result[k] = "Diagnostic" .. base_name .. name
+  end
+  
+  return result
+end
+
+local floating_highlight_map = make_highlight_map("Floating")
+
 local function _iter_diagnostic_move_pos(name, opts, pos)
   opts = opts or {}
 
@@ -81,7 +101,7 @@ local function show_diagnostics(opts, get_diagnostics)
   end
 
   local diagnostics = get_diagnostics()
-  if vim.tbl_isempty(diagnostics) then return end
+  if not diagnostics or vim.tbl_isempty(diagnostics) then return end
 
   local sorted_diagnostics = severity_sort
     and table.sort(diagnostics, comp_severity_asc)
@@ -89,7 +109,7 @@ local function show_diagnostics(opts, get_diagnostics)
 
   for i, diagnostic in ipairs(sorted_diagnostics) do
     local prefix = string.format("%d. ", i)
-    local hiname = lsp.diagnostic._get_floating_severity_highlight_name(diagnostic.severity)
+    local hiname = floating_highlight_map[diagnostic.severity]
     assert(hiname, 'unknown severity: ' .. tostring(diagnostic.severity))
 
     local message_lines = vim.split(diagnostic.message, '\n', true)
@@ -127,7 +147,7 @@ local function show_diagnostics(opts, get_diagnostics)
     end
   end
   api.nvim_buf_add_highlight(bufnr,-1,'LspSagaDiagnosticTruncateLine',1,0,-1)
-  util.close_preview_autocmd({"CursorMoved", "CursorMovedI", "BufHidden", "BufLeave"}, winid)
+  libs.close_preview_autocmd({"CursorMoved", "CursorMovedI", "BufHidden", "BufLeave"}, winid)
   api.nvim_win_set_var(0,"show_line_diag_winids",winid)
   return winid
 end

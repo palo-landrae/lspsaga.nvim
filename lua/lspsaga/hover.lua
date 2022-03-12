@@ -3,6 +3,7 @@ local window = require('lspsaga.window')
 local action = require('lspsaga.action')
 local npcall = vim.F.npcall
 local hover = {}
+local libs = require('lspsaga.libs')
 
 local function focusable_float(unique_name, fn)
   if npcall(api.nvim_win_get_var, 0, unique_name) then
@@ -25,7 +26,7 @@ hover.handler = function(_, method, result)
     window.nvim_win_try_close()
     local bufnr,winid = window.fancy_floating_markdown(markdown_lines)
 
-    lsp.util.close_preview_autocmd({"CursorMoved", "BufHidden","BufLeave", "InsertCharPre"}, winid)
+    lib.util.close_preview_autocmd({"CursorMoved", "BufHidden","BufLeave", "InsertCharPre"}, winid)
     return bufnr,winid
   end)
 end
